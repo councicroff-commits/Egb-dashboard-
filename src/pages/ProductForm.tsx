@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 const API_BASE_URL = 'https://egb-server-69b0.onrender.com/api';
+const SERVER_URL = 'https://egb-server-69b0.onrender.com';
 
 // Helper function to resolve image URLs safely
 const getImageUrl = (url: string) => {
@@ -22,8 +23,8 @@ const getImageUrl = (url: string) => {
   ) {
     return url;
   }
-  // If it's a relative path from the server, prepend the base URL
-  return `${https://egb-server-69b0.onrender.com}${url.startsWith('/') ? '' : '/'}${url}`;
+  // Properly prepend server base URL for relative paths
+  return `${SERVER_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
 const Toast = ({
@@ -84,7 +85,8 @@ const ProductForm: React.FC = () => {
   } | null>(null);
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    const token =
+      localStorage.getItem('token') || localStorage.getItem('authToken');
     return {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -118,7 +120,6 @@ const ProductForm: React.FC = () => {
     }
   };
 
-  // Directly fetch product details from the API when in Edit Mode
   useEffect(() => {
     let isMounted = true;
     if (isEditMode && id) {
@@ -129,13 +130,15 @@ const ProductForm: React.FC = () => {
         .then(async (res) => {
           if (!res.ok) throw new Error('Failed to retrieve product record.');
           const json = await res.json();
-          // Handle cases where response is wrapped in { data: ... } or direct object
           const productData = json.data || json;
           if (isMounted) populateFields(productData);
         })
         .catch((err) => {
           if (isMounted) {
-            showToast(err.message || 'Failed to sync resource profiles.', 'error');
+            showToast(
+              err.message || 'Failed to sync resource profiles.',
+              'error'
+            );
           }
         })
         .finally(() => {
@@ -211,7 +214,7 @@ const ProductForm: React.FC = () => {
       const url = isEditMode
         ? `${API_BASE_URL}/products/${id}`
         : `${API_BASE_URL}/products`;
-      
+
       const method = isEditMode ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -222,7 +225,10 @@ const ProductForm: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Transaction rejected by backend database modules.');
+        throw new Error(
+          errorData.message ||
+            'Transaction rejected by backend database modules.'
+        );
       }
 
       if (isEditMode) {
