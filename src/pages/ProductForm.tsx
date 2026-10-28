@@ -10,8 +10,8 @@ import {
   X,
 } from 'lucide-react';
 
-const API_BASE_URL = 'https://egb-server-69b0.onrender.com/api';
-const SERVER_URL = 'https://egb-server-69b0.onrender.com';
+// Removed /api from the base URL to match your backend routing
+const API_BASE_URL = 'https://egb-server-69b0.onrender.com';
 
 // Helper function to resolve image URLs safely
 const getImageUrl = (url: string) => {
@@ -23,7 +23,7 @@ const getImageUrl = (url: string) => {
   ) {
     return url;
   }
-  return `${SERVER_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+  return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
 const Toast = ({
