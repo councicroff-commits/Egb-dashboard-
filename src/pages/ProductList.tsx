@@ -20,9 +20,6 @@ const API_ORIGIN = (
 
 const IMAGE_FALLBACK = 'https://via.placeholder.com/150?text=No+Image';
 
-/**
- * Robustly resolves a product's image whether stored as an array, single string, or image property.
- */
 function getProductImageUrl(product: any): string {
   let rawPath: any = null;
 
@@ -227,7 +224,7 @@ const ProductList: React.FC = () => {
             </p>
           </div>
           <Link
-            to="/dashboard/products/new"
+            to="/products/new"
             className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-sm shadow-indigo-600/10 flex items-center justify-center gap-2"
           >
             <Plus size={16} />
@@ -292,7 +289,7 @@ const ProductList: React.FC = () => {
           </div>
         ) : (
           <div>
-            {/* Desktop Table View */}
+            {/* Desktop Table */}
             <div className="hidden md:block bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -367,9 +364,7 @@ const ProductList: React.FC = () => {
                         <td className="p-4 pr-6">
                           <div className="flex items-center justify-end gap-1.5 md:opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
-                              onClick={() =>
-                                navigate(`/dashboard/products/${productId}`)
-                              }
+                              onClick={() => navigate(`/products/${productId}`)}
                               className="p-1.5 bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                               title="View details"
                             >
@@ -377,9 +372,7 @@ const ProductList: React.FC = () => {
                             </button>
                             <button
                               onClick={() =>
-                                navigate(
-                                  `/dashboard/products/edit/${productId}`
-                                )
+                                navigate(`/products/edit/${productId}`)
                               }
                               className="p-1.5 bg-gray-50 border border-gray-200 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 rounded-lg transition-colors"
                               title="Modify"
@@ -407,7 +400,7 @@ const ProductList: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Card View */}
+            {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
               {filteredProducts.map((product) => {
                 const productId = product.id || product._id;
@@ -467,16 +460,14 @@ const ProductList: React.FC = () => {
 
                     <div className="flex gap-2">
                       <button
-                        onClick={() =>
-                          navigate(`/dashboard/products/${productId}`)
-                        }
+                        onClick={() => navigate(`/products/${productId}`)}
                         className="flex-1 py-1.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1"
                       >
                         <Eye size={12} /> View
                       </button>
                       <button
                         onClick={() =>
-                          navigate(`/dashboard/products/edit/${productId}`)
+                          navigate(`/products/edit/${productId}`)
                         }
                         className="flex-1 py-1.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1"
                       >
