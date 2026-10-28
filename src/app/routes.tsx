@@ -17,7 +17,6 @@ import UserDetail from '../pages/UserDetail';
 import Settings from '../pages/Settings';
 import Promos from '../pages/Promos';
 
-
 // Product Management Pages
 import ProductList from '../pages/ProductList';
 import ProductForm from '../pages/ProductForm';
@@ -34,7 +33,6 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  // Show a blank or loading state while AuthContext reads localStorage on hard refresh
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#11130f] text-[#f8f4e8]">
@@ -44,7 +42,6 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   }
 
   if (!isAuthenticated) {
-    // Preserve attempted URL location for redirect post-login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -60,7 +57,7 @@ const AppRoutes: React.FC = () => {
       {/* Public Authentication Route */}
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Protected Admin Routes */}
+      {/* Protected Admin Routes wrapper */}
       <Route
         path="/"
         element={
@@ -78,17 +75,18 @@ const AppRoutes: React.FC = () => {
         <Route path="analytics" element={<Analytics />} />
         <Route path="promos" element={<Promos />} />
         <Route path="settings" element={<Settings />} />
-      
 
-        {/* Product Management */}
-        <Route path="dashboard/products" element={<ProductList />} />
-        <Route path="dashboard/products/new" element={<ProductForm />} />
-        <Route path="dashboard/products/edit/:id" element={<ProductForm />} />
-        <Route path="dashboard/products/:id" element={<ProductDetail />} />
+        {/* Product Management 
+            NOTE: Place static paths (/new) BEFORE dynamic paths (/:id) 
+            to prevent React Router from treating 'new' as an ID parameter! */}
+        <Route path="products" element={<ProductList />} />
+        <Route path="products/new" element={<ProductForm />} />
+        <Route path="products/edit/:id" element={<ProductForm />} />
+        <Route path="products/:id" element={<ProductDetail />} />
 
         {/* Order Management */}
-        <Route path="dashboard/orders" element={<OrderList />} />
-        <Route path="dashboard/orders/:id" element={<OrderDetails />} />
+        <Route path="orders" element={<OrderList />} />
+        <Route path="orders/:id" element={<OrderDetails />} />
 
         {/* Users Management */}
         <Route path="users" element={<Users />} />
