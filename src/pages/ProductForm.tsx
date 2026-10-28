@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react';
 
-// Helper function to resolve image URLs (supports base64, absolute URLs, and relative paths)
+// Helper function to resolve image URLs safely
 const getImageUrl = (url: string) => {
   if (!url) return '';
   if (
@@ -21,7 +21,6 @@ const getImageUrl = (url: string) => {
   ) {
     return url;
   }
-  // Adjust this base URL if your backend serves uploads from a specific static folder/domain
   return url;
 };
 
@@ -492,7 +491,7 @@ const ProductForm: React.FC = () => {
 
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-5 border-b border-gray-100 pb-3">
-                <Package className="text-indigo-600" size='18' />
+                <Package className="text-indigo-600" size={18} />
                 <h2 className="text-md font-bold text-gray-900">
                   Fixed Variants
                 </h2>
