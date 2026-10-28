@@ -21,10 +21,7 @@ const API_ORIGIN = (
 const IMAGE_FALLBACK = 'https://via.placeholder.com/150?text=No+Image';
 
 /**
- * Robustly resolves a product's image whether it's stored as:
- * - An array of strings: product.images = ["path/to/img.jpg"]
- * - A single string path: product.images = "path/to/img.jpg"
- * - A singular property: product.image = "path/to/img.jpg"
+ * Robustly resolves a product's image whether stored as an array, single string, or image property.
  */
 function getProductImageUrl(product: any): string {
   let rawPath: any = null;
@@ -149,8 +146,8 @@ const ProductList: React.FC = () => {
 
   useEffect(() => {
     if (typeof fetchProducts === 'function') {
-      fetchProducts().catch((err) =>
-        showToast(err.message || 'Failure to query product listings.', 'error')
+      fetchProducts().catch((err: any) =>
+        showToast(err?.message || 'Failure to query product listings.', 'error')
       );
     }
   }, [fetchProducts]);
@@ -162,7 +159,7 @@ const ProductList: React.FC = () => {
       showToast('Asset listing erased successfully.', 'success');
     } catch (err: any) {
       showToast(
-        err.message || 'Error occurred during entry purging execution.',
+        err?.message || 'Error occurred during entry purging execution.',
         'error'
       );
     } finally {
@@ -171,13 +168,15 @@ const ProductList: React.FC = () => {
   };
 
   const filteredProducts = useMemo(() => {
+    if (!Array.isArray(products)) return [];
     return products.filter((product) => {
+      const name = product?.name || '';
+      const sku = product?.sku || '';
       const matchesSearch =
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.sku &&
-          product.sku.toLowerCase().includes(searchTerm.toLowerCase()));
+        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sku.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus =
-        filterStatus === 'all' || product.status === filterStatus;
+        filterStatus === 'all' || product?.status === filterStatus;
       return matchesSearch && matchesStatus;
     });
   }, [products, searchTerm, filterStatus]);
@@ -192,7 +191,7 @@ const ProductList: React.FC = () => {
             : 'bg-gray-100 text-gray-500 border-gray-200'
       }`}
     >
-      {status}
+      {status || 'active'}
     </span>
   );
 
@@ -293,7 +292,7 @@ const ProductList: React.FC = () => {
           </div>
         ) : (
           <div>
-            {/* Desktop */}
+            {/* Desktop Table View */}
             <div className="hidden md:block bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -344,9 +343,9 @@ const ProductList: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${
-                                product.inventory > 10
+                                (product.inventory || 0) > 10
                                   ? 'bg-green-500'
-                                  : product.inventory > 0
+                                  : (product.inventory || 0) > 0
                                     ? 'bg-amber-500'
                                     : 'bg-red-500'
                               }`}
@@ -358,12 +357,12 @@ const ProductList: React.FC = () => {
                                   : 'text-gray-600'
                               }`}
                             >
-                              {product.inventory} pieces remaining
+                              {product.inventory ?? 0} pieces remaining
                             </span>
                           </div>
                         </td>
                         <td className="p-4 text-gray-500 font-semibold capitalize">
-                          {product.category}
+                          {product.category || 'N/A'}
                         </td>
                         <td className="p-4 pr-6">
                           <div className="flex items-center justify-end gap-1.5 md:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -408,7 +407,7 @@ const ProductList: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile */}
+            {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
               {filteredProducts.map((product) => {
                 const productId = product.id || product._id;
@@ -447,9 +446,9 @@ const ProductList: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            product.inventory > 10
+                            (product.inventory || 0) > 10
                               ? 'bg-green-500'
-                              : product.inventory > 0
+                              : (product.inventory || 0) > 0
                                 ? 'bg-amber-500'
                                 : 'bg-red-500'
                           }`}
@@ -461,7 +460,7 @@ const ProductList: React.FC = () => {
                               : 'text-gray-600'
                           }`}
                         >
-                          {product.inventory} units available
+                          {product.inventory ?? 0} units available
                         </span>
                       </div>
                     </div>
