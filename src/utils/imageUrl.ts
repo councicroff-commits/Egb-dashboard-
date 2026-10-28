@@ -1,5 +1,5 @@
 const API_ORIGIN = (
-  import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+  import.meta.env.VITE_API_BASE_URL || 'https://egb-server-69b0.onrender.com'
 ).replace(/\/+$/, '');
 
 const FALLBACK =
