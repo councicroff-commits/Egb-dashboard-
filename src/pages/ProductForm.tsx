@@ -10,7 +10,6 @@ import {
   X,
 } from 'lucide-react';
 
-// Removed /api from the base URL to match your backend routing
 const API_BASE_URL = 'https://egb-server-69b0.onrender.com';
 
 // Helper function to resolve image URLs safely
@@ -212,9 +211,10 @@ const ProductForm: React.FC = () => {
     };
 
     try {
+      // Added trailing slash /products/ for POST requests to align with FastAPI routing
       const url = isEditMode
         ? `${API_BASE_URL}/products/${id}`
-        : `${API_BASE_URL}/products`;
+        : `${API_BASE_URL}/products/`;
 
       const method = isEditMode ? 'PUT' : 'POST';
 
@@ -229,9 +229,9 @@ const ProductForm: React.FC = () => {
         try {
           const errorData = await response.json();
           serverMessage =
+            errorData.detail ||
             errorData.message ||
             errorData.error ||
-            errorData.details ||
             JSON.stringify(errorData);
         } catch {
           serverMessage = `HTTP Error ${response.status}: ${response.statusText}`;
