@@ -11,6 +11,20 @@ import {
   X,
 } from 'lucide-react';
 
+// Helper function to resolve image URLs (supports base64, absolute URLs, and relative paths)
+const getImageUrl = (url: string) => {
+  if (!url) return '';
+  if (
+    url.startsWith('data:') ||
+    url.startsWith('http://') ||
+    url.startsWith('https://')
+  ) {
+    return url;
+  }
+  // Adjust this base URL if your backend serves uploads from a specific static folder/domain
+  return url;
+};
+
 const Toast = ({
   message,
   type,
@@ -303,14 +317,15 @@ const ProductForm: React.FC = () => {
                     className="relative aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-200 group shadow-sm"
                   >
                     <img
-  src={getImageUrl(imgUrl)}
-  alt=""
-  className="w-full h-full object-contain mix-blend-multiply p-2"
-  onError={(e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = 'https://via.placeholder.com/150?text=No+Image';
-  }}
-/>
+                      src={getImageUrl(imgUrl)}
+                      alt=""
+                      className="w-full h-full object-contain mix-blend-multiply p-2"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src =
+                          'https://via.placeholder.com/150?text=No+Image';
+                      }}
+                    />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
@@ -477,7 +492,7 @@ const ProductForm: React.FC = () => {
 
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-5 border-b border-gray-100 pb-3">
-                <Package className="text-indigo-600" size={18} />
+                <Package className="text-indigo-600" size='18' />
                 <h2 className="text-md font-bold text-gray-900">
                   Fixed Variants
                 </h2>
