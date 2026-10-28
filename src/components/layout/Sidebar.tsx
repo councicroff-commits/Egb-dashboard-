@@ -20,8 +20,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Home', path: '/home', icon: Home },
-    { name: 'Products', path: '/dashboard/products', icon: Package },
-    { name: 'Orders', path: '/dashboard/orders', icon: ShoppingCart },
+    { name: 'Products', path: '/products', icon: Package },
+    { name: 'Orders', path: '/orders', icon: ShoppingCart },
     { name: 'Users', path: '/users', icon: Users },
     { name: 'Analytics', path: '/analytics', icon: BarChart3 },
     { name: 'Promos', path: '/promos', icon: Tag },
