@@ -23,7 +23,6 @@ const getImageUrl = (url: string) => {
   ) {
     return url;
   }
-  // Properly prepend server base URL for relative paths
   return `${SERVER_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
@@ -37,21 +36,21 @@ const Toast = ({
   onClose: () => void;
 }) => (
   <div
-    className={`fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-3 rounded-xl shadow-xl z-50 border ${
+    className={`fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-3 rounded-xl shadow-xl z-50 border max-w-lg text-center ${
       type === 'success'
         ? 'bg-green-50 border-green-200 text-green-800'
         : 'bg-red-50 border-red-200 text-red-800'
     }`}
   >
     {type === 'success' ? (
-      <CheckCircle2 size={18} className="text-green-600" />
+      <CheckCircle2 size={18} className="text-green-600 shrink-0" />
     ) : (
-      <AlertCircle size={18} className="text-red-600" />
+      <AlertCircle size={18} className="text-red-600 shrink-0" />
     )}
-    <span className="font-semibold text-sm">{message}</span>
+    <span className="font-semibold text-xs leading-relaxed">{message}</span>
     <button
       onClick={onClose}
-      className="ml-4 text-gray-400 hover:text-gray-600 transition-colors"
+      className="ml-4 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
     >
       <X size={14} />
     </button>
@@ -86,7 +85,9 @@ const ProductForm: React.FC = () => {
 
   const getAuthHeaders = () => {
     const token =
-      localStorage.getItem('token') || localStorage.getItem('authToken');
+      localStorage.getItem('token') ||
+      localStorage.getItem('authToken') ||
+      localStorage.getItem('adminToken');
     return {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -152,7 +153,7 @@ const ProductForm: React.FC = () => {
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToast(null), 6000);
   };
 
   const handleImageSelect = async (
@@ -194,7 +195,7 @@ const ProductForm: React.FC = () => {
       description,
       price: parseFloat(price) || 0.0,
       compare_at_price: compareAtPrice ? parseFloat(compareAtPrice) : null,
-      sku,
+      sku: sku.trim() !== '' ? sku : undefined,
       inventory: parseInt(inventory, 10) || 0,
       category,
       status,
@@ -224,11 +225,18 @@ const ProductForm: React.FC = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            'Transaction rejected by backend database modules.'
-        );
+        let serverMessage = '';
+        try {
+          const errorData = await response.json();
+          serverMessage =
+            errorData.message ||
+            errorData.error ||
+            errorData.details ||
+            JSON.stringify(errorData);
+        } catch {
+          serverMessage = `HTTP Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(serverMessage);
       }
 
       if (isEditMode) {
@@ -238,10 +246,7 @@ const ProductForm: React.FC = () => {
       }
       setTimeout(() => navigate('/dashboard/products'), 1500);
     } catch (err: any) {
-      showToast(
-        err.message || 'Transaction rejected by backend database modules.',
-        'error'
-      );
+      showToast(err.message || 'Transaction rejected by backend.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -557,7 +562,7 @@ const ProductForm: React.FC = () => {
                     placeholder="e.g. Red, Blue, Black"
                   />
                   <p className="text-[10px] text-gray-400 mt-1">
-                    Separate colors with comma.
+                    Separate colors with commas.
                   </p>
                 </div>
               </div>
