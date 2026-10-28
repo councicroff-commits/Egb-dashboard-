@@ -211,10 +211,10 @@ const ProductForm: React.FC = () => {
     };
 
     try {
-      // Added trailing slash /products/ for POST requests to align with FastAPI routing
+      // Removed trailing slash to match FastAPI endpoint routing (/products)
       const url = isEditMode
         ? `${API_BASE_URL}/products/${id}`
-        : `${API_BASE_URL}/products/`;
+        : `${API_BASE_URL}/products`;
 
       const method = isEditMode ? 'PUT' : 'POST';
 
