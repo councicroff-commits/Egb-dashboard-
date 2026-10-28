@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-// Use Auth Context instead of disconnected utils
+// Auth Context
 import { useAuth } from '../context/AuthContext';
 
 // Layouts & Authentication Pages
@@ -57,7 +57,7 @@ const AppRoutes: React.FC = () => {
       {/* Public Authentication Route */}
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Protected Admin Routes wrapper */}
+      {/* Protected Admin Routes */}
       <Route
         path="/"
         element={
@@ -76,9 +76,7 @@ const AppRoutes: React.FC = () => {
         <Route path="promos" element={<Promos />} />
         <Route path="settings" element={<Settings />} />
 
-        {/* Product Management 
-            NOTE: Place static paths (/new) BEFORE dynamic paths (/:id) 
-            to prevent React Router from treating 'new' as an ID parameter! */}
+        {/* Product Management (Clean URLs) */}
         <Route path="products" element={<ProductList />} />
         <Route path="products/new" element={<ProductForm />} />
         <Route path="products/edit/:id" element={<ProductForm />} />
