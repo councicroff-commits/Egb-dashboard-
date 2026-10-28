@@ -557,7 +557,7 @@ const ProductForm: React.FC = () => {
                     placeholder="e.g. Red, Blue, Black"
                   />
                   <p className="text-[10px] text-gray-400 mt-1">
-                    Separate colors with commas.
+                    Separate colors with comma.
                   </p>
                 </div>
               </div>
