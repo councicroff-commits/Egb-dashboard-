@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useProducts } from '../context/ProductContext';
 import {
   Package,
   DollarSign,
@@ -9,21 +10,6 @@ import {
   AlertCircle,
   X,
 } from 'lucide-react';
-
-const API_BASE_URL = 'https://egb-server-69b0.onrender.com';
-
-// Helper function to resolve image URLs safely
-const getImageUrl = (url: string) => {
-  if (!url) return '';
-  if (
-    url.startsWith('data:') ||
-    url.startsWith('http://') ||
-    url.startsWith('https://')
-  ) {
-    return url;
-  }
-  return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-};
 
 const Toast = ({
   message,
@@ -35,21 +21,21 @@ const Toast = ({
   onClose: () => void;
 }) => (
   <div
-    className={`fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-3 rounded-xl shadow-xl z-50 border max-w-lg text-center ${
+    className={`fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-3 rounded-xl shadow-xl z-50 border ${
       type === 'success'
         ? 'bg-green-50 border-green-200 text-green-800'
         : 'bg-red-50 border-red-200 text-red-800'
     }`}
   >
     {type === 'success' ? (
-      <CheckCircle2 size={18} className="text-green-600 shrink-0" />
+      <CheckCircle2 size={18} className="text-green-600" />
     ) : (
-      <AlertCircle size={18} className="text-red-600 shrink-0" />
+      <AlertCircle size={18} className="text-red-600" />
     )}
-    <span className="font-semibold text-xs leading-relaxed">{message}</span>
+    <span className="font-semibold text-sm">{message}</span>
     <button
       onClick={onClose}
-      className="ml-4 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+      className="ml-4 text-gray-400 hover:text-gray-600 transition-colors"
     >
       <X size={14} />
     </button>
@@ -60,6 +46,8 @@ const ProductForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditMode = !!id;
+  const { fetchProductById, createProduct, updateProduct, products } =
+    useProducts();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -81,17 +69,6 @@ const ProductForm: React.FC = () => {
     message: string;
     type: 'success' | 'error';
   } | null>(null);
-
-  const getAuthHeaders = () => {
-    const token =
-      localStorage.getItem('token') ||
-      localStorage.getItem('authToken') ||
-      localStorage.getItem('adminToken');
-    return {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-  };
 
   const populateFields = (data: any) => {
     setName(data.name || '');
@@ -123,36 +100,32 @@ const ProductForm: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     if (isEditMode && id) {
-      setIsLoading(true);
-      fetch(`${API_BASE_URL}/products/${id}`, {
-        headers: getAuthHeaders(),
-      })
-        .then(async (res) => {
-          if (!res.ok) throw new Error('Failed to retrieve product record.');
-          const json = await res.json();
-          const productData = json.data || json;
-          if (isMounted) populateFields(productData);
-        })
-        .catch((err) => {
-          if (isMounted) {
-            showToast(
-              err.message || 'Failed to sync resource profiles.',
-              'error'
-            );
-          }
-        })
-        .finally(() => {
-          if (isMounted) setIsLoading(false);
-        });
+      if (typeof fetchProductById === 'function') {
+        fetchProductById(id)
+          .then((data: any) => {
+            if (isMounted) populateFields(data);
+          })
+          .catch((err: any) => {
+            if (isMounted) {
+              showToast(
+                err.message || 'Failed to sync resource profiles.',
+                'error'
+              );
+            }
+          });
+      } else {
+        const found = products.find((p) => p.id === id || p._id === id);
+        if (found && isMounted) populateFields(found);
+      }
     }
     return () => {
       isMounted = false;
     };
-  }, [id, isEditMode]);
+  }, [id, isEditMode, fetchProductById]);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 6000);
+    setTimeout(() => setToast(null), 4000);
   };
 
   const handleImageSelect = async (
@@ -194,7 +167,7 @@ const ProductForm: React.FC = () => {
       description,
       price: parseFloat(price) || 0.0,
       compare_at_price: compareAtPrice ? parseFloat(compareAtPrice) : null,
-      sku: sku.trim() !== '' ? sku : undefined,
+      sku,
       inventory: parseInt(inventory, 10) || 0,
       category,
       status,
@@ -211,43 +184,19 @@ const ProductForm: React.FC = () => {
     };
 
     try {
-      // Removed trailing slash to match FastAPI endpoint routing (/products)
-      const url = isEditMode
-        ? `${API_BASE_URL}/products/${id}`
-        : `${API_BASE_URL}/products`;
-
-      const method = isEditMode ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        let serverMessage = '';
-        try {
-          const errorData = await response.json();
-          serverMessage =
-            errorData.detail ||
-            errorData.message ||
-            errorData.error ||
-            JSON.stringify(errorData);
-        } catch {
-          serverMessage = `HTTP Error ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(serverMessage);
-      }
-
-      if (isEditMode) {
+      if (isEditMode && id) {
+        await updateProduct(id, payload);
         showToast('System node successfully recalibrated!', 'success');
       } else {
+        await createProduct(payload);
         showToast('Asset catalog index successfully generated!', 'success');
       }
-      setTimeout(() => navigate('/dashboard/products'), 1500);
+      setTimeout(() => navigate('/products'), 1500);
     } catch (err: any) {
-      showToast(err.message || 'Transaction rejected by backend.', 'error');
-    } finally {
+      showToast(
+        err.message || 'Transaction rejected by backend database modules.',
+        'error'
+      );
       setIsLoading(false);
     }
   };
@@ -277,7 +226,7 @@ const ProductForm: React.FC = () => {
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => navigate('/dashboard/products')}
+              onClick={() => navigate('/products')}
               className="px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-semibold shadow-sm transition-all"
             >
               Cancel
@@ -354,14 +303,9 @@ const ProductForm: React.FC = () => {
                     className="relative aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-200 group shadow-sm"
                   >
                     <img
-                      src={getImageUrl(imgUrl)}
+                      src={imgUrl}
                       alt=""
                       className="w-full h-full object-contain mix-blend-multiply p-2"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src =
-                          'https://via.placeholder.com/150?text=No+Image';
-                      }}
                     />
                     <button
                       type="button"
