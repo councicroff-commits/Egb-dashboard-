@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useProducts } from '../context/ProductContext';
 import {
   Package,
   DollarSign,
@@ -10,6 +9,8 @@ import {
   AlertCircle,
   X,
 } from 'lucide-react';
+
+const API_BASE_URL = 'https://egb-server-69b0.onrender.com/api';
 
 // Helper function to resolve image URLs safely
 const getImageUrl = (url: string) => {
@@ -21,7 +22,8 @@ const getImageUrl = (url: string) => {
   ) {
     return url;
   }
-  return url;
+  // If it's a relative path from the server, prepend the base URL
+  return `${https://egb-server-69b0.onrender.com}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
 const Toast = ({
@@ -59,8 +61,6 @@ const ProductForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditMode = !!id;
-  const { fetchProductById, createProduct, updateProduct, products } =
-    useProducts();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -82,6 +82,14 @@ const ProductForm: React.FC = () => {
     message: string;
     type: 'success' | 'error';
   } | null>(null);
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
 
   const populateFields = (data: any) => {
     setName(data.name || '');
@@ -110,31 +118,34 @@ const ProductForm: React.FC = () => {
     }
   };
 
+  // Directly fetch product details from the API when in Edit Mode
   useEffect(() => {
     let isMounted = true;
     if (isEditMode && id) {
-      if (typeof fetchProductById === 'function') {
-        fetchProductById(id)
-          .then((data: any) => {
-            if (isMounted) populateFields(data);
-          })
-          .catch((err: any) => {
-            if (isMounted) {
-              showToast(
-                err.message || 'Failed to sync resource profiles.',
-                'error'
-              );
-            }
-          });
-      } else {
-        const found = products.find((p) => p.id === id || p._id === id);
-        if (found && isMounted) populateFields(found);
-      }
+      setIsLoading(true);
+      fetch(`${API_BASE_URL}/products/${id}`, {
+        headers: getAuthHeaders(),
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Failed to retrieve product record.');
+          const json = await res.json();
+          // Handle cases where response is wrapped in { data: ... } or direct object
+          const productData = json.data || json;
+          if (isMounted) populateFields(productData);
+        })
+        .catch((err) => {
+          if (isMounted) {
+            showToast(err.message || 'Failed to sync resource profiles.', 'error');
+          }
+        })
+        .finally(() => {
+          if (isMounted) setIsLoading(false);
+        });
     }
     return () => {
       isMounted = false;
     };
-  }, [id, isEditMode, fetchProductById]);
+  }, [id, isEditMode]);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -197,11 +208,26 @@ const ProductForm: React.FC = () => {
     };
 
     try {
-      if (isEditMode && id) {
-        await updateProduct(id, payload);
+      const url = isEditMode
+        ? `${API_BASE_URL}/products/${id}`
+        : `${API_BASE_URL}/products`;
+      
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Transaction rejected by backend database modules.');
+      }
+
+      if (isEditMode) {
         showToast('System node successfully recalibrated!', 'success');
       } else {
-        await createProduct(payload);
         showToast('Asset catalog index successfully generated!', 'success');
       }
       setTimeout(() => navigate('/dashboard/products'), 1500);
@@ -210,6 +236,7 @@ const ProductForm: React.FC = () => {
         err.message || 'Transaction rejected by backend database modules.',
         'error'
       );
+    } finally {
       setIsLoading(false);
     }
   };
