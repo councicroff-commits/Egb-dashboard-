@@ -1,3 +1,6 @@
+// ==========================================
+// OrderList.tsx  (FULL UPDATED FILE)
+// ==========================================
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../context/OrderContext';
@@ -262,7 +265,7 @@ const OrderList: React.FC = () => {
                       className="hover:bg-gray-50 transition cursor-pointer"
                       onClick={() => {
                         if (currentId) {
-                          navigate(`/dashboard/orders/${currentId}`);
+                          navigate(`/orders/${currentId}`);
                         }
                       }}
                     >
@@ -321,7 +324,7 @@ const OrderList: React.FC = () => {
                           onClick={(event) => {
                             event.stopPropagation();
                             if (currentId) {
-                              navigate(`/dashboard/orders/${currentId}`);
+                              navigate(`/orders/${currentId}`);
                             }
                           }}
                           className="text-indigo-600 hover:text-indigo-900 font-bold mr-3"
