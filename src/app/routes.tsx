@@ -36,7 +36,9 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#11130f] text-[#f8f4e8]">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#d4a56a]">Loading backyard...</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#d4a56a]">
+          Loading backyard...
+        </p>
       </div>
     );
   }
@@ -76,17 +78,18 @@ const AppRoutes: React.FC = () => {
         <Route path="promos" element={<Promos />} />
         <Route path="settings" element={<Settings />} />
 
-        {/* Product Management (Clean URLs) */}
+        {/* Product Management (Clean URLs) - more specific routes first */}
         <Route path="products" element={<ProductList />} />
         <Route path="products/new" element={<ProductForm />} />
         <Route path="products/edit/:id" element={<ProductForm />} />
         <Route path="products/:id" element={<ProductDetail />} />
 
-        {/* Order Management */}
+        {/* Order Management - more specific routes first (critical for :id matching) */}
         <Route path="orders" element={<OrderList />} />
+        {/* Keep any future specific order routes (e.g. new/edit) above the :id route */}
         <Route path="orders/:id" element={<OrderDetails />} />
 
-        {/* Users Management */}
+        {/* Users Management - more specific routes first */}
         <Route path="users" element={<Users />} />
         <Route path="users/:id" element={<UserDetail />} />
       </Route>
